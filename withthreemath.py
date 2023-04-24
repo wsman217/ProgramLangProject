@@ -178,7 +178,7 @@ def math():
         if third:
             print(firstVal + " = " + secondVal + " " + sign + " " + thirdVal)
         else:
-            print(firstVal + " " + sign + "= " + secondVal)
+            print("var0" + " = " + firstVal + " " + sign + " " + secondVal)
     else:
         error = True
 
