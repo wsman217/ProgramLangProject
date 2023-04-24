@@ -13,7 +13,12 @@ def validate_lexemes():
 def valid_lexeme(lexeme):
     return lexeme in ["function", "math", "loop", "add", "sub", "multi", "divide", "mod", "for", "while", "if",
                       "var1", "var2", "var3", "var4", "func1", "func2", "func3", "1", "2", "3", "4", "5",
-                      "6", "7", "8", "9", "0", ">", "<", "==", ">=", "<=", "not", "="]
+                      "6", "7", "8", "9", "0", ">", "<", ">=", "<=", "="]
+
+
+def depth_print():
+    for i in range(0, depth):
+        print("\t", end="")
 
 
 def get_next_lexeme():
@@ -49,9 +54,14 @@ def expr():
 def first():
     global lexeme
     global error
+    global depth
     # Do we have a one?
+
     if lexeme == "function":
+        depth = 0
+        print("def ", end="")
         function()
+        depth += 1
     elif lexeme == "loop":
         loop()
     elif lexeme == "math":
@@ -67,8 +77,10 @@ def function():
     # Do we have a one?
     get_next_lexeme()
     if lexeme in ["func1", "func2", "func3"]:
+        print(lexeme + "(", end="")
         get_next_lexeme()
         acc_vars()
+        print("): ")
     else:
         error = True
 
@@ -79,6 +91,8 @@ def acc_vars():
     global error
     # Do we have a one?
     if lexeme in ["var1", "var2", "var3", "var4"]:
+        depth_print()
+        print(lexeme + ", ", end="")
         get_next_lexeme()
         acc_vars()
     elif get_previous_lexeme() not in ["var1", "var2", "var3", "var4"]:
@@ -89,34 +103,54 @@ def acc_vars():
 def loop():
     global lexeme
     global error
+    global depth
     # Do we have a one?
     get_next_lexeme()
+    isIf = lexeme == "if"
     if lexeme in ["for", "while", "if"]:
-        constraints()
+        depth_print()
+        print(lexeme, end="")
+        constraints(isIf)
+        print(": ")
+        depth += 1
+        get_next_lexeme()
 
 
-# <constraints> := <input> <input> | <input> <compare> <input>
-def constraints():
+# <constraints> := <input> <compare> <input>
+def constraints(is_if):
     global lexeme
     global error
     # Do we have a one?
     get_next_lexeme()
+    firstVar = lexeme
     input_function()
     get_next_lexeme()
-    if lexeme in ["not", "<", ">", "<=", ">=", "=="]:
-        get_next_lexeme()
+    if lexeme not in ["<", ">", "<=", ">="]:
+        error = True
+    sign = lexeme
+    get_next_lexeme()
+    secondVar = lexeme
     input_function()
+    if not is_if:
+        if sign == "<":
+            print(" i in range(" + firstVar + ", " + secondVar + ")", end="")
+        elif sign == "<=":
+            print(" i in range(" + firstVar + ", " + secondVar + " + 1)", end="")
+        elif sign == ">":
+            print(" i in range(" + firstVar + ", " + secondVar + ", -1)", end="")
+        elif sign == ">=":
+            print(" i in range(" + firstVar + ", " + secondVar + " + 1, -1)", end="")
+    else:
+        print(" " + firstVar + " " + sign + " " + secondVar, end="")
+
 
 
 def input_function():
     global lexeme
     global error
 
-    if lexeme in [str(x) for x in range(0, 10)]:
-        print("python moat : this is the number beeches", lexeme)
-    else:
-        if lexeme not in ["var1", "var2", "var3", "var4"]:
-            error = True
+    if lexeme not in [str(x) for x in range(0, 10)] and lexeme not in ["var1", "var2", "var3", "var4"]:
+        error = True
 
 
 # <math> := <mathType> <input> <input> (| <mathType> <input> <input> <input>)
@@ -124,20 +158,33 @@ def math():
     global lexeme
     global error
     get_next_lexeme()
+    convert = {"add": "+", "sub": "-", "multi": "*", "divide": "/", "mod": "%"}
+    sign = convert[lexeme]
+    third = False
     if lexeme in ["add", "sub", "multi", "divide", "mod"]:
         get_next_lexeme()
+        firstVal = lexeme
         input_function()
         get_next_lexeme()
+        secondVal = lexeme
         input_function()
-        if get_next_lexeme() != None:
+        thirdVal = ""
+        if get_next_lexeme() is not None:
+            third = True
             get_next_lexeme()
+            thirdVal = lexeme
             input_function()
+        depth_print()
+        if third:
+            print(firstVal + " = " + secondVal + " " + sign + " " + thirdVal)
+        else:
+            print(firstVal + " " + sign + "= " + secondVal)
     else:
         error = True
 
 
 # main program
-# read in the input sentena`
+# read in the input sentence`
 #
 # ces
 for line in sys.stdin:
@@ -149,9 +196,12 @@ for line in sys.stdin:
 
     lexeme_index = -1
     error = False
+    depth = 0
 
     if validate_lexemes():
         get_next_lexeme()
+        print("var1 = var2 = var3 = var4 = 0")
+
         expr()
 
         # Either an error occurred or
