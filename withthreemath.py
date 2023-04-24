@@ -130,6 +130,7 @@ def math():
         get_next_lexeme()
         input_function()
         if get_next_lexeme() != None:
+            get_next_lexeme()
             input_function()
     else:
         error = True
